@@ -1,0 +1,138 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Treewatch — Baumkataster Münster</title>
+
+  <!-- Leaflet -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css" />
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js"></script>
+
+  <!-- Leaflet MarkerCluster -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet.markercluster/1.5.3/MarkerCluster.css" />
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet.markercluster/1.5.3/MarkerCluster.Default.css" />
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet.markercluster/1.5.3/leaflet.markercluster.min.js"></script>
+
+  <!-- Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600&family=JetBrains+Mono:wght@300;400&display=swap" rel="stylesheet" />
+
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+
+  <!-- HEADER -->
+  <header id="header">
+    <div class="header-left">
+      <div class="logo">
+        <span class="logo-icon">🌳</span>
+        <div>
+          <span class="logo-title">Treewatch</span>
+          <span class="logo-sub">Baumkataster Münster</span>
+        </div>
+      </div>
+    </div>
+    <div class="header-right">
+      <div id="tree-count" class="stat-badge">
+        <span class="stat-num" id="count-num">—</span>
+        <span class="stat-label">Bäume geladen</span>
+      </div>
+      <button id="filter-toggle" class="btn-icon" title="Filter">
+        <svg width="18" height="18" viewBox="0 0 18 18" fill="none">
+          <path d="M2 4h14M5 9h8M8 14h2" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+        </svg>
+      </button>
+      <button id="info-toggle" class="btn-icon" title="Info">
+        <svg width="18" height="18" viewBox="0 0 18 18" fill="none">
+          <circle cx="9" cy="9" r="7" stroke="currentColor" stroke-width="1.5"/>
+          <path d="M9 8v5M9 6v.5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+        </svg>
+      </button>
+    </div>
+  </header>
+
+  <!-- MAP -->
+  <div id="map"></div>
+
+  <!-- FILTER PANEL -->
+  <aside id="filter-panel" class="panel hidden">
+    <div class="panel-header">
+      <h2 class="panel-title">Filter</h2>
+      <button class="panel-close" id="filter-close">×</button>
+    </div>
+    <div class="panel-body">
+      <div class="filter-section">
+        <label class="filter-label mono">Baumart suchen</label>
+        <input type="text" id="species-search" class="filter-input" placeholder="z.B. Quercus, Acer..." />
+      </div>
+      <div class="filter-section">
+        <div class="filter-label-row">
+          <label class="filter-label mono">Baumarten</label>
+          <button id="clear-filter" class="btn-text">Alle anzeigen</button>
+        </div>
+        <div id="species-list" class="species-list">
+          <div class="loading-species">Lade Baumarten...</div>
+        </div>
+      </div>
+    </div>
+  </aside>
+
+  <!-- INFO PANEL -->
+  <aside id="info-panel" class="panel hidden">
+    <div class="panel-header">
+      <h2 class="panel-title">Über Treewatch</h2>
+      <button class="panel-close" id="info-close">×</button>
+    </div>
+    <div class="panel-body">
+      <p class="info-text">Treewatch visualisiert das digitale Baumkataster der Stadt Münster. Die Daten stammen direkt vom Open Data Portal der Stadt Münster und werden live abgerufen.</p>
+      <div class="info-stats">
+        <div class="info-stat">
+          <span class="info-stat-num" id="stat-total">—</span>
+          <span class="info-stat-label">Bäume gesamt</span>
+        </div>
+        <div class="info-stat">
+          <span class="info-stat-num" id="stat-species">—</span>
+          <span class="info-stat-label">Baumarten</span>
+        </div>
+      </div>
+      <div class="info-uses">
+        <h3 class="info-uses-title">Verwendungszwecke</h3>
+        <ul class="info-uses-list">
+          <li>🤧 Allergiker können Gebiete zur Blütezeit meiden</li>
+          <li>🌿 Verteilung von Baumarten im Stadtgebiet</li>
+          <li>☀️ Schattenwege für heiße Sommertage</li>
+          <li>🦋 Seltene Bäume entdecken</li>
+        </ul>
+      </div>
+      <div class="info-source">
+        <span class="mono">Datenquelle:</span>
+        <a href="https://opendata.stadt-muenster.de" target="_blank">opendata.stadt-muenster.de</a>
+      </div>
+    </div>
+  </aside>
+
+  <!-- TREE POPUP (custom) -->
+  <div id="tree-detail" class="tree-detail hidden">
+    <button id="detail-close" class="detail-close">×</button>
+    <div class="detail-icon">🌳</div>
+    <div class="detail-name" id="detail-name">—</div>
+    <div class="detail-latin" id="detail-latin">—</div>
+    <div class="detail-coords" id="detail-coords"></div>
+  </div>
+
+  <!-- LOADING -->
+  <div id="loading" class="loading-overlay">
+    <div class="loading-inner">
+      <div class="loading-tree">🌱</div>
+      <div class="loading-text">Lade Baumkataster...</div>
+      <div class="loading-bar-wrap">
+        <div class="loading-bar" id="loading-bar"></div>
+      </div>
+      <div class="loading-sub mono" id="loading-sub">Verbinde mit Open Data Münster</div>
+    </div>
+  </div>
+
+  <script src="main.js"></script>
+</body>
+</html>

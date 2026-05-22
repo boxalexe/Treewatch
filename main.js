@@ -154,7 +154,7 @@ function buildMarkers(features) {
     const coords = feature.geometry?.coordinates;
     if (!coords) return;
     const [lng, lat] = coords;
-    const latin = feature.properties?.GATTUNG_ART || feature.properties?.gattung_art || '';
+    const latin = feature.properties?.baumgruppe || feature.properties?.baumgruppe || '';
     const german = getGermanName(latin);
 
     const marker = L.marker([lat, lng], { icon: createTreeIcon() });
@@ -184,7 +184,7 @@ function showTreeDetail(german, latin, lat, lng) {
 function buildSpeciesList(features) {
   const counts = {};
   features.forEach(f => {
-    const s = f.properties?.GATTUNG_ART || f.properties?.gattung_art || 'Unbekannt';
+    const s = f.properties?.baumgruppe || f.properties?.baumgruppe || 'Unbekannt';
     counts[s] = (counts[s] || 0) + 1;
   });
 
@@ -223,7 +223,7 @@ function filterBySpecies(name, el) {
     document.querySelectorAll('.species-item').forEach(i => i.classList.remove('active'));
     el.classList.add('active');
     const filtered = allFeatures.filter(f => {
-      const s = f.properties?.GATTUNG_ART || f.properties?.gattung_art || 'Unbekannt';
+      const s = f.properties?.baumgruppe || f.properties?.baumgruppe || 'Unbekannt';
       return s === name;
     });
     buildMarkers(filtered);
@@ -305,7 +305,7 @@ async function loadTreeData() {
     setLoadingProgress(85, 'Render Karte...');
 
     allFeatures = data.features || [];
-
+    console.log('Eigenschaften:', JSON.stringify(allFeatures[0]?.properties));
     buildMarkers(allFeatures);
     buildSpeciesList(allFeatures);
     updateCount(allFeatures.length);

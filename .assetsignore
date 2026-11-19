@@ -1,0 +1,4 @@
+# Nicht ausliefern (Cloudflare Workers Static Assets)
+.git
+.wrangler
+/wrangler.jsonc
